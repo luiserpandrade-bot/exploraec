@@ -119,13 +119,7 @@ class PlacesController extends GetxController {
   // `favoritos`: el corazón responde, pero todo se pierde al cerrar la app.
   // La versión real además agrega o elimina el lugar de _favoritosBox (Hive,
   // lo que sobrevive reiniciar la app).
-  //void alternarFavorito(Place lugar) {
-  //  if (esFavorito(lugar)) {
- //     favoritos.removeWhere((p) => p.id == lugar.id);
-  //  } else {
-  //    favoritos.add(lugar);
-  //  }
-  //}
+
   void alternarFavorito(Place lugar) {
     if (esFavorito(lugar)) {
       _favoritosBox.delete(lugar.id);
