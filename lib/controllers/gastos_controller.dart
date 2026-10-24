@@ -26,10 +26,31 @@ class GastosController extends GetxController {
   /// Categorías que define el backend (`GET /gastos/categorias`).
   final RxList<String> categorias = <String>[].obs;
 
+  /// Categoría elegida en el filtro de la pantalla. Cadena vacía = «Todas».
+  final RxString categoriaFiltro = ''.obs;
+
   /// `true` solo cuando la última carga exitosa vino de la caché local (el
   /// servidor no respondió): la UI lo usa para avisar «datos guardados».
   final RxBool desdeCache = false.obs;
   String get ultimaSincronizacion => _repository.ultimaSincronizacion;
+
+  /// Categorías que de verdad aparecen en los gastos cargados, ordenadas.
+  /// Por qué no se usa `categorias`: esa es la lista del backend e incluye
+  /// categorías en las que la persona todavía no registró nada; el filtro solo
+  /// ofrece opciones que dan resultados.
+  List<String> get categoriasConGastos =>
+      gastos.map((g) => g.categoria).toSet().toList()..sort();
+
+  /// Lista que ve la pantalla: todos los gastos o solo los de la categoría
+  /// elegida. Lee `gastos` y `categoriaFiltro`, así que dentro de un `Obx` la
+  /// pantalla se reconstruye sola cuando cambia cualquiera de los dos.
+  List<Gasto> get gastosFiltrados {
+    final categoria = categoriaFiltro.value;
+    if (categoria.isEmpty) return gastos;
+    return gastos.where((g) => g.categoria == categoria).toList();
+  }
+
+  void filtrarPorCategoria(String categoria) => categoriaFiltro.value = categoria;
 
   @override
   void onInit() {
@@ -74,6 +95,12 @@ class GastosController extends GetxController {
     gastos.value = lista;
     totalEnServidor.value = lista.length;
     desdeCache.value = cache;
+    // Por qué: si se borró el último gasto de la categoría filtrada, el chip
+    // ya no existe; sin esto la pantalla quedaría vacía sin forma de volver.
+    if (categoriaFiltro.value.isNotEmpty &&
+        !categoriasConGastos.contains(categoriaFiltro.value)) {
+      categoriaFiltro.value = '';
+    }
   }
 
   Future<void> cargarCategorias() async {
@@ -126,6 +153,7 @@ class GastosController extends GetxController {
     await _repository.vaciar();
     gastos.clear();
     categorias.clear();
+    categoriaFiltro.value = '';
     totalEnServidor.value = 0;
     desdeCache.value = false;
     mensajeError.value = '';

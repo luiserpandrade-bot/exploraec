@@ -10,6 +10,7 @@ import '../services/api_exception.dart';
 import 'pantalla_con_fallo.dart';
 import '../widgets/empty_view.dart';
 import '../widgets/error_view.dart';
+import '../widgets/filtro_categorias.dart';
 import '../widgets/loading_view.dart';
 import '../widgets/sin_sesion_view.dart';
 import 'cambiar_password_screen.dart';
@@ -103,11 +104,17 @@ class GastosScreen extends GetView<GastosController> {
                   ),
                 ],
               ),
+            const FiltroCategorias(),
+            // Por qué este vacío es distinto del de arriba: con un filtro
+            // activo sí hay gastos, solo que ninguno de esa categoría, y los
+            // chips deben seguir visibles para poder volver a «Todas».
             Expanded(
-              child: RefreshIndicator(
-                onRefresh: controller.cargarGastos,
-                child: _buildLista(context, controller.gastos),
-              ),
+              child: controller.gastosFiltrados.isEmpty
+                  ? const EmptyView(mensaje: 'No hay gastos en esta categoría')
+                  : RefreshIndicator(
+                      onRefresh: controller.cargarGastos,
+                      child: _buildLista(context, controller.gastosFiltrados),
+                    ),
             ),
           ],
         );
